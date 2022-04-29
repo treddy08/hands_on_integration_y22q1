@@ -1,0 +1,151 @@
+---
+DATASHEET:
+  status: In continuous Development
+  approver: Dev
+  date: 2022-04-27
+
+FIELDS:
+- name: COURSE NAME
+  description: Full, approved course name.
+  responsible: dev, pre-kickoff
+  value: Hands-On with Red Hat Integration Y22Q1
+
+- name: PROJECT NAME
+  description: For internal use only (This should match the github repo name)
+  responsible: dev, pre-kickoff
+  value: hands_on_integration_y22q1
+
+- name: NEW/UPDATE
+  description: |
+    New for net new course, update for a major update to an existing course.
+    For internal use only.
+  responsible: dev, pre-kickoff
+  value: new
+
+- name: DEVELOPER/PRODUCER
+  description: Developer name here. For internal use only.
+  responsible: dev, pre-kickoff
+  value: Tyrell Reddy
+
+- name: DURATION
+  description: Total hours, including any assessments.
+  responsible: dev, post-kickoff
+  value: 4 Hours
+
+- name: MODALITY
+  description: |
+    ELT (e-learning)
+    ELAB (e-learning + labs)
+    ILT (instructor-led training)
+    Video (video e-learning)
+    RP (readiness package)
+    Training Clip (short video e-learning), etc.
+  responsible: dev, pre-kickoff
+  value: ELT
+
+- name: PROFICIENCY LEVEL
+  description: Foundational, Experienced, Advanced, or Expert
+  responsible: dev, pre-kickoff
+  value: Experienced
+
+- name: PRODUCT & VERSION
+  description: |
+    Full product name with full release number
+    (e.g., Red Hat JBoss Fuse 6.2.1)
+  responsible: dev, pre-kickoff
+  value: |
+    Red Hat Integration Y22Q1
+
+- name: COURSE DESCRIPTION
+  description: |
+    The course description has a 4000 character limit
+
+    To provide enough information for a sufficiently detailed description, be sure that your description answers the following questions:
+    What is the specific product/solution that the course focuses on?
+    What topics relating to that product/solution are covered?
+    What are the main tasks that the student will perform during the course?
+    What is the end result of taking the course? What skills and knowledge will the student gain? What will the student be able to do?
+  responsible: dev, post-kickoff
+  value: |
+    Hands-On with Red Hat Integration 2022 Q1 introduces students to some of the key features released for 2022/Q1 with products in the Red Hat Integration stack.
+    In this course, students will be exposed to the new features released in the Red Hat Integration stack for Y22/Q1.
+
+    By completing this course, students will be able to:
+    * Use Camel extensions in a Camel route deployed on Quarkus
+    * Install and run a Debezium database connector on AMQ
+    * Understand and use the new features released for Camel K
+
+
+- name: SHORT DESCRIPTION
+  description: |
+    The short description has a 2000 character limit.
+    The short description should consist of one to three sentences
+    summarizing the main points from the course description.
+    This short description is used for marketing & comms GTM
+    activities as well as in the training system, attached to the
+    course in all search and catalog views.
+  responsible: dev, post-kickoff
+  value: |
+    Hands-On with Red Hat Integration Y22Q1 introduces students to some of the most
+    important new features released for Y22/Q1. These include Camel extensions for Quarkus, Debezium database connectors on AMQ and the new Camel K features.
+
+- name: RECOMMENDED SKILLS
+  description: |
+    What kind of skills/technical experience will someone need to
+    take this course?
+    Soft prerequisites.
+  responsible: dev, post-kickoff
+  value: |
+    * Understanding of containers and virtualization
+    * Understanding of Camel and Camel K
+    * Basic understanding of the development life cycle and developer workflow
+    * Ability to read and modify code
+
+- name: RECOMMENDED TRAINING
+  description: |
+    Training courses from any environment that a user should
+    complete before registering for this course. Hard prerequisites.
+    Use actual course titles (e.g., Red Hat JBoss Fuse Foundations)
+  responsible: dev, post-kickoff
+  value: |
+    * Red Hat OpenShift 4 Foundations
+    * Red Hat Fuse 7 Foundations Part 2: Camel
+    * What is Camel K in a Nutshell ?
+
+- name: COURSE OUTLINE
+  description: |
+    Provide the outline for the course.
+    Use the module titles from the delivered course and
+    describe the important module topics. (This information
+    should be available in the transcript of the Topic slide).
+  responsible: dev, post-kickoff
+  value: |
+    * *Introduction*
+      * Get an overview of the course.
+      * Review assumptions for students taking the course.
+      * Describe the class environment topology.
+      * Learn about the course labs.
+
+    * *Environment Setup Lab*
+      * Provision and deploy the lab environment.
+      * Test access to OpenShift Container Platform.
+      * Connect to the cluster.
+
+    * *Camel Extensions for Quarkus Lab*
+      * Generate a skeleton application
+      * Explore the code
+      * Add a simple camel route
+      * Test
+      * Package and run
+
+    * *Debezium Database Connectors on AMQ Lab*
+      * Introduction to Debezium Database Connectors
+      * Installing Debezium with AMQ Streams on RHEL (not sure about this)
+      * Installing Debezium with AMQ Streams on OpenShift
+
+    * *New features in Camel K Lab*
+      * Introduction to new features in Camel K
+      * Knative Eventing for event-driven architectures
+      * Camel integrations written in Java or YAML DSL
+      * Monitoring of integrations using Prometheus in OpenShift
+      * Kamelet Catalog for connectors to external systems such as AWS, Jira, and Salesforce

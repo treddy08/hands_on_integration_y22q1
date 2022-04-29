@@ -1,0 +1,31 @@
+== Hands-On with Red Hat Integration Y22Q1
+
+=== Description
+
+Hands-On with Red Hat Integration Y22Q1
+
+Hands-On with Red Hat Integration Y22Q1 introduces students to some of the spotlight features released in Y22/Q1
+Students will be able to use Camel extensions for Camel applications deployed on Quarkus
+Students will be able to install and use the Debezium database connector on AMQ
+Finally, students will get experience with the new features in Camel K.
+
+Camel Extensons for Quarkus:: Use the Quarkus application generator to bootstrap your application and discover its extension ecosystem.  All of the important aspects of a Camel Extensions for Quarkus application can be set up programmatically with CDI (Contexts and Dependency Injection) or via configuration properties.
+
+Debezium Database Connectors on AMQ:: In this lab you will be able to use AMQ Streams to deploy Debezium connectors by using a new AMQ Streams build mechanism that is based on Maven artifacts.
+
+New Features in Camel K:: This lab walks the student through Knative Eventing for event-driven architectures,Camel integrations written in Java or YAML DSL, monitoring of integrations using Prometheus in OpenShift and using the Kamelet Catalog for connectors to external systems such as AWS, Jira, and Salesforce
+
+=== Modules
+
+NOTE: There's only one module with four labs and one assessment.
+
+=== Labs
+
+* Course Setup Lab
+* Camel Extensions for Quarkus
+* Debezium Database Connectors on AMQ
+* New Features in Camel K
+
+== Versions
+
+0.1.0: first QA release 2022-04-27
