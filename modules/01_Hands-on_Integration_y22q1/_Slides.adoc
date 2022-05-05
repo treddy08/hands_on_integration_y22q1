@@ -70,8 +70,8 @@ endif::showscript[]
 
 * This course consists of hands-on labs with learning activities, references, and resources.
 * Topics cover the following Red Hat Integration Y22Q1 features:
-** Camel extensions for Quarkus
-** Dbezium Database Connectors on AMQ
+** Camel Extensions for Quarkus
+** Dbezium Database Connectors with AMQ Streams
 ** New features in Camel K
 
 ifdef::showscript[]

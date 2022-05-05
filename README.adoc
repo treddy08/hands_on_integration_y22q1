@@ -23,7 +23,7 @@ NOTE: There's only one module with four labs and one assessment.
 
 * Course Setup Lab
 * Camel Extensions for Quarkus
-* Debezium Database Connectors on AMQ
+* Debezium Database Connectors with AMQ Streams
 * New Features in Camel K
 
 == Versions
