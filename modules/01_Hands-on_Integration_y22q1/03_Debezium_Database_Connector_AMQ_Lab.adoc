@@ -170,8 +170,11 @@ $ cat << EOF | oc create -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  name: debezium-lab-01-og
+  name: lab-03-debezium-og
   namespace: lab-03-debezium
+spec:
+  targetNamespaces:
+  - lab-03-debezium
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -188,7 +191,7 @@ EOF
 +
 [NOTE]
 
-. To check the status of the installation, run the command `oc describe sub amq-streams`.  Under Conditions, ensure that the catalog sources are healthy and have no error messages:
+. To check the status of the installation, run the command `oc get csv`.  When AMQ Streams is installed, you should find an entry related to `amqstreams` in phase *Succeeded*:
 +
 [source,bash]
 ----
@@ -200,7 +203,7 @@ EOF
     Type:                   CatalogSourcesUnhealthy
 ----
 
-. Next, deploy a single node Kafka Cluster:
+. A Kafka cluster consists of one or more servers (Kafka brokers) running Kafka.  A properly configured Kafka cluster is able to handle massive throughput and ideal for processing vast amounts of data collected by the Debezium databas connectors .  In this lab we will require only a single node Kafka cluster.  To deploy the cluster, run the following command:
 +
 [source,bash]
 ----

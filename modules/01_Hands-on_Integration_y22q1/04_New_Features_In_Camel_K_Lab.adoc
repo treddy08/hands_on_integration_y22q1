@@ -1,0 +1,380 @@
+:labname: New Features in Camel K
+
+include::../include/00_0_Lab_Header.adoc[]
+
+== {labname} Lab
+
+:numbered:
+
+== Introduction to New Features in Camel K
+
+Debezium for Red Hat Integration is a distributed platform that captures database operations, creates data change event records for row-level operations, and streams change event records to Apache Kafka topics. Debezium is built on Apache Kafka and is deployed and integrated with AMQ Streams.
+
+Debezium captures row-level changes to a database table and passes corresponding change events to AMQ Streams. Applications can read these change event streams and access the change events in the order in which they occurred.
+
+With the Y22Q1 release of Red Hat^(R)^ Integration, you can now use AMQ Streams to deploy Debezium connectors by using a new AMQ Streams build mechanism that is based on Maven artifacts.
+
+The Camel K provides cloud-native integration with the following main features:
+
+* Knative Serving for autoscaling and scale-to-zero
+* Knative Eventing for event-driven architectures
+* Performance optimizations using Quarkus runtime by default
+* Camel integrations written in Java or YAML DSL
+* Monitoring of integrations using Prometheus in OpenShift
+* Quickstart tutorials
+* Kamelet Catalog for connectors to external systems such as AWS, Jira, and Salesforce
+* Support for Timer and Log Kamelets
+* Metering for Camel K Operator and pods
+
+In this lab, we will cover the some of the features released in this quarter which include:
+
+.Goals
+
+* Camel K Serverless integration with Knative in an event-driven architecture
+* Camel integrations written in Java or YAML DSL
+* Monitoring of integrations using Prometheus in OpenShift
+* Kamelet Catalog for connectors to external systems such as AWS, Jira, and Salesforce
+* Summary
+
+== Camel K Serverless integration with Knative in an event-driven architecture
+
+In this section, you will deploy a Camel K integration with OpenShift Serverless in an event-driven architecture. This demonstrates the idiomatic way of using Camel K in Knative for building event-driven applications. It leverages the Knative eventing broker as the central point that lets various services communicate via event pub/sub. It also shows how Camel K can be used for connecting the Knative event mesh with external systems, with integrations that can play the roles of "event source" or "event sink".
+
+.Scenario
+This exercise will demonstrate a simplified trading system that analyzes price variations of Bitcoins (BTC / USDT), using different prediction algorithms, and informs downstream services when it's time to buy or sell bitcoins (via CloudEvents). It uses real data from the bitcoin exchange market, obtained in real time via the https://www.binance.com Http service.
+
+The architecture is composed of the following Camel K integrations:
+
+* market-source: creates a live feed of BTC/USDT events, from the Bitcoin exchange market, containing the current value of a bitcoin and related information.
+* simple-predictor: it is triggered by variations in the BTC/USDT value and produces "suggested actions", as events for downstream services, telling if it's time to buy or sell at a specific value.
+* better-predictor: it's an alternative prediction algorithm (prediction algorithms are pluggable in the architecture) that is wiser and generates less buy/sell events respect to the simple-predictor.
+* silly-investor: this service believes blindly to the simple-predictor and buys/sells Bitcoins whenever the predictor suggests it.
+* cautious-investor-service: this is a service built by another team that needs suggestions from the better-predictor but it needs to receive them via a pre-existing public REST API that it shared also with external entities.
+* cautious-investor-adapter-sink: this Camel K integration listens to buy/sell events from the better-predictor and transforms them into REST calls to the * cautious-investor-service using its public API.
+
+All Camel K integrations described above (except the market-source which needs to poll the market for new data), are "serverless", meaning that they scale down to zero when they don't receive new events or requests.
+
+=== Preparing the cluster
+
+.Procedure
+
+. Create a new project for this section of the lab:
++
+[source,bash]
+----
+$ oc new-project lab-04-knative
+----
+
+.  To start using Camel K, we need to install the operator by running the below command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: lab-04-knative-og
+  namespace: lab-04-knative
+spec:
+  targetNamespaces:
+  - lab-04-knative
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: red-hat-camel-k
+  namespace: lab-04-knative
+spec:
+  channel: stable
+  name: red-hat-camel-k
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+----
+
+.  Next we need to install the Integration Platform.  The IntegrationPlatform CR is the resource used to control the behavior of the Camel K Operator such as the desired state and the status of the object at current time.  You install the IntegrationPlatform by running this command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: camel.apache.org/v1
+kind: IntegrationPlatform
+metadata:
+  name: camel-k
+  labels:
+    app: "camel-k"
+  namespace: lab-04-knative
+EOF
+----
+
+. Confirm if the operator installed successfull by running `oc get csv` and find an entry related to `red-hat-camel-k-operator` in phase *Succeeded*:
++
+[source,bash]
+----
+NAME                              DISPLAY                         VERSION   REPLACES                                         PHASE
+red-hat-camel-k-operator.v1.6.5   Red Hat Integration - Camel K   1.6.5     red-hat-camel-k-operator.v1.6.4-0.1648537022.p   Succeeded
+----
+
+. We now need to install the Openshift Serverless Operator (Knative) to later install both Knative Serving and Knative Eventing.  To do this we first need to create a new namespace for the operator by running this command:
++
+[source,bash]
+----
+$ oc create namespace openshift-serverless
+----
+
+. Next we install the operator:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-serverless-og
+  namespace: openshift-serverless
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: serverless-operator
+  namespace: openshift-serverless
+spec:
+  channel: stable
+  name: serverless-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+----
+
+. Confirm if the operator installed successfull by running `oc get csv` and find an entry related to `serverless-operator` in phase *Succeeded*:
++
+[source,bash]
+----
+NAME                          DISPLAY                        VERSION   REPLACES                      PHASE
+serverless-operator.v1.21.1   Red Hat OpenShift Serverless   1.21.1    serverless-operator.v1.21.0   Succeeded
+----
+
+. Once the operator is installed, we need to install Knative-Serving.  Knative Serving is ideal for running your application services inside Kubernetes by providing a more simplified deployment syntax with automated scale-to-zero and scale-out based on HTTP load. The Knative platform will manage your service’s deployments, revisions, networking and scaling. Knative Serving exposes your service via an HTTP URL and has a lot of sane defaults for its configurations.  To create the resource, run the below command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: operator.knative.dev/v1alpha1
+kind: KnativeServing
+metadata:
+  name: knative-serving
+  namespace: knative-serving
+spec: {}
+EOF
+----
+
+. To check that Knative Serving is installed successfully, we need to confirm the status of the `Conditions` of the resource.  Run the below command and identify the `status` fields of the returned json:
++
+[source,bash]
+----
+$ oc get knativeserving knative-serving -n knative-serving -o jsonpath="{.status.conditions}" | python -m json.tool
+----
++
+[NOTE]
+If you do not have python installed, copy the output generated of `oc get knativeserving knative-serving -n knative-serving -o jsonpath="{.status.conditions}"` to a json formatting tool of your choice.
++
+The value of all `status` fields should be `true`.
+
+. Next we install Knative Eventing.  Knative eventing is a way to create, send, and verify events in your cloud-native environment.  To install Knative Eventing, run the below command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+pipe heredoc> apiVersion: operator.knative.dev/v1alpha1
+kind: KnativeEventing
+metadata:
+  name: knative-eventing
+  namespace: knative-eventing
+spec: {}
+EOF
+----
+
+. To check that Knative Eventing is installed successfully, we need to confirm the status of the `Conditions` of the resource.  Run the below command and identify the `status` fields of the returned json:
++
+[source,bash]
+----
+$ oc get knativeeventing knative-eventing -n knative-eventing -o jsonpath="{.status.conditions}" | python -m json.tool
+----
+
+=== Enabling the Knative Eventing Broker
+
+.Procedure
+
+. Switch back to your main project:
++
+[source,bash]
+----
+$ oc project lab-04-knative
+----
+
+. The central piece of the event mesh that we're going to create is the Knative Eventing broker. It is a publish/subscribe entity that Camel K integrations will use to publish events or subscribe to it in order to being triggered when events of specific types are available. Subscribers of the eventing broker are Knative serving services, that can scale down to zero when no events are available for them.
++
+To enable the eventing broker, we create a default broker in the current namespace using the Knative CLI:
++
+[source,bash]
+----
+$ kn broker create default
+----
+
+=== Push Bitcoin market data to the mesh
+
+.Procedure
+
+. Navigate to the directory where you have cloned the lab artifacts.
+
+. We'll create a (market-source.yaml) integration, using Camel YAML DSL, with the role of taking live data from the Bitcoin market and pushing it to the event mesh, using the market.btc.usdt event type:
++
+[source,bash]
+----
+kamel run market-source.yaml --logs
+----
++
+The command above will run the integration and wait for it to run, then it will show the logs in the console.  To exit the log view, hit ctrl+c on the terminal window. The integration will keep running on the cluster.
+
+=== Run some prediction algorithms
+
+.Procedure
+
+. The market data feed available in the mesh can be now used to create different prediction algorithms that can publish events when they believe it's the right time to sell or buy bitcoins, depending on the trend of the exchange.
++
+In this example, we're going to run two predictors containing the same (basic) algorithm with different variables. The algorithm is basic and it's just computing if the BTC variation respect to the last observed value is higher than a threshold (expressed in percentage). The algorithm is bound to the event mesh via the `SimplePredictor.java` and `BetterPredictor.java` integration files.
++
+The first predictor that we're going to run is called `simple-predictor`:
++
+[source,bash]
+----
+kamel run --name simple-predictor SimplePredictor.java -t knative-service.max-scale=1 --logs
+----
++
+[NOTE]
+We're setting the maximum number of instances of the autoscaling service to 1 because it runs a basic algorithm that does not support scaling (stores data in memory)
++
+The command above will deploy the integration and wait for it to run, then it will show the logs in the console.  To exit the log view, hit ctrl+c on the terminal window. The integration will keep running on the cluster.
+
+. The second one (better-predictor) will be just a variation of the first, with a different threshold:
++
+[source,bash]
+----
+kamel run --name better-predictor BetterPredictor.java -t knative-service.max-scale=1
+----
++
+You can update the BetterPredictor.java file and play with the sensitivity of the better-predictor to make it do prediction faster or slower and see the effects on the downstream services.
++
+[source,java]
+----
+...
+private double sensitivity = 0.0005;
+...
+----
+
+. Ensure that both predictors are running:
++
+[source,bash]
+----
+$ kamel get
+NAME			    PHASE	KIT
+better-predictor	Running	lab-04-knative/kit-c9sb9md321256ktt5jb0
+market-source		Running	lab-04-knative/kit-c9sb72l321256ktt5jag
+simple-predictor	Running	lab-04-knative/kit-c9sb9md321256ktt5jb0
+----
++
+You should wait also for the better-predictor integration to be running before proceeding.
+
+=== Run a subscriber investor service
+
+.Procedure
+
+. We are going to deploy a service that will listen to the events of type `predictor.simple` (i.e. generated by the simple predictor) and blindly executing the suggested actions (in this example, printing the action to the logs).
++
+It's thus called `silly-investor``. To run it:
++
+[source,bash]
+----
+$ kamel run SillyInvestor.java --logs
+----
++
+The command above will run the integration and wait for it to run, then it will show the logs in the console. You should be able to see that the investor service is doing actions suggested by the simple predictions.
++
+To exit the log view, hit ctrl+c on the terminal window. The integration will keep running on the cluster.
+
+=== Connecting an external investor service
+
+.Procedure
+
+. We'll simulate the presence of an existing investor service that is not directly connected to the mesh. It exposes a well defined API that is available in the `CautiousInvestorService.java` file.
++
+The service could have been developed with any language or framework, but since in this example it's developed with Camel K, it is automatically turned into an autoscaling serverless service.
++
+To run it:
++
+[source,bash]
+----
+$ kamel run CautiousInvestorService.java -w
+----
++
+The -w flag (stands for "wait") in command above will make sure the command terminates on the terminal only when the integration is fully deployed.
+
+. Now we can deploy the CautiousInvestorAdapterSink.java integration, that will bring events from the "better" predictor right into the service APIs, after a simple transformation:
++
+[source,bash]
+----
+$ kamel run CautiousInvestorAdapterSink.java -w
+----
+
+. Once the adapter sink is running, you can look at the external service logs to see if it's receiving recommendations. The command for printing the logs is:
++
+[source,bash]
+----
+$ kamel logs cautious-investor-service
+----
++
+To exit the log view, just hit ctrl+c on the terminal window.
++
+[NOTE]
+If the pod does not run or the logs are not showing up, then probably there's nothing to show. Since the "better" predictor is not sensitive to small variations of the Bitcoin value, it's possible that the service will go down after some time to save resources. To force the service to come up again, you can edit the `CautiousInvestorAdapterSink.java` to change the starting URI from knative:event/predictor.better to knative:event/predictor.simple, then run the integration again. It's likely that the events generated by the simple predictor will trigger the downstream services more often.
+
+=== When the market closes...
+
+.Procedure
+
+. Bitcoin market never closes, but closing hours are expected to be present for standard markets. We're going to simulate a closing on the market by stopping the source integration.
++
+When the market closes and updates are no longer pushed into the event mesh, all downstream services will scale down to zero. This includes the two prediction algorithms, the two services that receive events from the mesh and also the external investor service.
++
+To simulate a market close, we will delete the market-source:
++
+[source,bash]
+----
+$ kamel delete market-source
+----
++
+At the end of the process, no user pods will be running.
+
+. To simulate now a reactivation of the market in the morning, you can create again the market-source:
++
+[source,bash]
+----
+$ kamel run market-source.yaml
+----
+
+. Pods now will start again to run, one after the other, as soon as they are needed:
++
+[source,bash]
+----
+$ oc get pod
+----
+
+=== Cleanup
+
+.Procedure
+
+To cleanup everything, execute the following command:
+[source,bash]
+----
+$ oc delete project lab-04-knative
+----

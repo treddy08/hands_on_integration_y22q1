@@ -8,7 +8,7 @@ include::../include/00_0_Lab_Header.adoc[]
 
 == Introduction to Camel Extensions for Quarkus
 
-This project aims to bring the awesome integration capabilities of Camel and its vast component library to the Quarkus runtime.  Ite nables users to take advantage of the performance benefits, developer joy and the container first ethos that Quarkus provides.  Camel Extension for Quarkus provides Quarkus extensions for many of the Camel components.
+This project aims to bring the awesome integration capabilities of Camel and its vast component library to the Quarkus runtime.  It enables users to take advantage of the performance benefits, developer joy and the container first ethos that Quarkus provides.  Camel Extension for Quarkus provides Quarkus extensions for many of the Camel components.
 
 The Y22Q1 release of Red Hat^(R)^ Integration includes the Camel Extensions for Quarkus features:
 
@@ -23,7 +23,7 @@ The Y22Q1 release of Red Hat^(R)^ Integration includes the Camel Extensions for 
 
 .Goals
 
-* Creating the skeleton application using `code.quarkus.redhat.com`
+* Creating the skeleton application using the link:https://code.quarkus.redhat.com/[Quarkus Application Generator]
 * Adding a simple Camel route
 * Exploring the application code
 * Compiling the application in development mode
@@ -32,11 +32,11 @@ The Y22Q1 release of Red Hat^(R)^ Integration includes the Camel Extensions for 
 
 == Generating the skeleton application
 
-Projects can be bootstrapped and generated at code.quarkus.redhat.com. The Camel Extensions for Quarkus extensions are located under the 'Integration' heading.
+Projects can be bootstrapped and generated at link:https://code.quarkus.redhat.com/[Quarkus Application Generator]. The Camel Extensions for Quarkus extensions are located under the 'Integration' heading.
 
 image::images/application-generator-integration-heading.png[Application Generator,align="center"]
 
-Use the 'search' field to find the extensions that you require.
+Use the `search` field to find the extensions that you require.
 
 Select the component extensions that you want to work with and click the 'Generate your application' button to download a basic skeleton project. There is also the option to push the project directly to GitHub.
 
@@ -44,11 +44,11 @@ In this section you will be creating a skeleton application that would be later 
 
 .Procedure
 
-. Open your browser and navigate to `code.quarkus.redhat.com`
-. In the 'CONFIGURE YOR APPLICATION' section of the page, complete the following:
-.. For `Group` type in `org.mycompany``
+. Open your browser and navigate to link:https://code.quarkus.redhat.com/[Quarkus Application Generator]
+. In the *CONFIGURE YOR APPLICATION* section of the page, complete the following:
+.. For `Group` type in `org.mycompany`
 .. For `Artifact` type in `quarkus-rest-app`
-.. Ensure that the `Build Tool`` is selected as `Maven`
+.. Ensure that the `Build Tool` is selected as `Maven`
 +
 image::images/application-generator-artifact-info.png[Application Configuration,align="left"]
 
@@ -63,7 +63,7 @@ The extensions selected are required to enable us to build a Camel REST service.
 
 . Click the `Generate your application` option and then click 'DOWNLOAD THE ZIP' button to save the skeleton application to your machine.
 +
-image::images/application-generator-download-applicationimage::images/
+image::images/application-generator-download-application.png[Download Application,align="left"]
 
 == Explore the application code
 
