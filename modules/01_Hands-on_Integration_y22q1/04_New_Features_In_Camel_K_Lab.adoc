@@ -225,13 +225,19 @@ $ kn broker create default
 
 .Procedure
 
-. Navigate to the directory where you have cloned the lab artifacts.
+. Run the below command to clone the repository containing the lab artifacts and navigate to the folder lab-04-knative:
++
+[source,bash]
+----
+$ git clone git@github.com/redhat-gpte-devopsautomation/hands_on_integration_y22q1_lab.git
+$ cd hands_on_integration_y22q1_lab/lab-04-knative
+----
 
 . We'll create a (market-source.yaml) integration, using Camel YAML DSL, with the role of taking live data from the Bitcoin market and pushing it to the event mesh, using the market.btc.usdt event type:
 +
 [source,bash]
 ----
-kamel run market-source.yaml --logs
+$ kamel run market-source.yaml --logs
 ----
 +
 The command above will run the integration and wait for it to run, then it will show the logs in the console.  To exit the log view, hit ctrl+c on the terminal window. The integration will keep running on the cluster.
@@ -242,13 +248,13 @@ The command above will run the integration and wait for it to run, then it will 
 
 . The market data feed available in the mesh can be now used to create different prediction algorithms that can publish events when they believe it's the right time to sell or buy bitcoins, depending on the trend of the exchange.
 +
-In this example, we're going to run two predictors containing the same (basic) algorithm with different variables. The algorithm is basic and it's just computing if the BTC variation respect to the last observed value is higher than a threshold (expressed in percentage). The algorithm is bound to the event mesh via the `SimplePredictor.java` and `BetterPredictor.java` integration files.
+In this example, we're going to run the same (basic) algorithm with different parameters*, obtaining two predictors. The algorithm is basic and it's just computing if the BTC variation respect to the last observed value is higher than a threshold (expressed in percentage). The algorithm is bound to the event mesh via the `Predictor.java` integration file.
 +
 The first predictor that we're going to run is called `simple-predictor`:
 +
 [source,bash]
 ----
-kamel run --name simple-predictor SimplePredictor.java -t knative-service.max-scale=1 --logs
+$ kamel run --name simple-predictor -p predictor.name=simple Predictor.java -t knative-service.max-scale=1 --logs
 ----
 +
 [NOTE]
@@ -260,17 +266,10 @@ The command above will deploy the integration and wait for it to run, then it wi
 +
 [source,bash]
 ----
-kamel run --name better-predictor BetterPredictor.java -t knative-service.max-scale=1
+$ kamel run --name better-predictor -p predictor.name=better -p algorithm.sensitivity=0.0005 Predictor.java -t knative-service.max-scale=1
 ----
 +
-You can update the BetterPredictor.java file and play with the sensitivity of the better-predictor to make it do prediction faster or slower and see the effects on the downstream services.
-+
-[source,java]
-----
-...
-private double sensitivity = 0.0005;
-...
-----
+You can play with the sensitivity of the better-predictor to make it do prediction faster or slower and see the effects on the downstream services.
 
 . Ensure that both predictors are running:
 +
@@ -377,4 +376,220 @@ To cleanup everything, execute the following command:
 [source,bash]
 ----
 $ oc delete project lab-04-knative
+----
+
+== Camel integrations written in Java or YAML DSL
+
+This section of the lab demonstrates how to run a simple Java and YAML integration in the cloud on OpenShift, apply configuration and routing to an integration, and run an integration as a Kubernetes CronJob.
+
+=== Preparing the cluster
+
+We will start by creating a new project and installing the Red Hat Camel K operator and an Integration Platform for running your new integrations.
+
+.Procedure
+
+. Create a new project for this section of the lab:
++
+[source,bash]
+----
+$ oc new-project lab-04-camel-basic
+----
+
+.  To start using Camel K, we need to install the operator by running the below command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: lab-04-camel-basic-og
+  namespace: lab-04-camel-basic
+spec:
+  targetNamespaces:
+  - lab-04-camel-basic
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: red-hat-camel-k
+  namespace: lab-04-camel-basic
+spec:
+  channel: stable
+  name: red-hat-camel-k
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+----
+
+.  Next we need to install the Integration Platform.  The IntegrationPlatform CR is the resource used to control the behavior of the Camel K Operator such as the desired state and the status of the object at current time.  You install the IntegrationPlatform by running this command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: camel.apache.org/v1
+kind: IntegrationPlatform
+metadata:
+  name: camel-k
+  labels:
+    app: "camel-k"
+  namespace: lab-04-camel-basic
+EOF
+----
+
+. Confirm if the operator installed successfull by running `oc get csv` and find an entry related to `red-hat-camel-k-operator` in phase *Succeeded*:
++
+[source,bash]
+----
+NAME                              DISPLAY                         VERSION   REPLACES                                         PHASE
+red-hat-camel-k-operator.v1.6.5   Red Hat Integration - Camel K   1.6.5     red-hat-camel-k-operator.v1.6.4-0.1648537022.p   Succeeded
+----
+
+=== Running a basic Java integration
+
+This exercise contains a simple Camel K integration that periodically prints a "Hello World..." message.
+The integration is all contained in a single file named `JavaBasic.java`.
+
+.Procedure
+
+. Navigate to the git repository you cloned in the previous section and select the `lab-04-camel-basic` subdirectory.  If you have not done this already, execute the following commands:
++
+[source,bash]
+----
+$ git clone git@github.com/redhat-gpte-devopsautomation/hands_on_integration_y22q1_lab.git
+$ cd hands_on_integration_y22q1_lab/lab-04-camel-basic
+----
+
+. Open the file `JavaBasic.java`.  It contains a simple route which intermittently prints a message to logger.
++
+[source,java]
+----
+...
+from("timer:java?period=1000")
+  .setHeader("example")
+    .constant("Java")
+  .setBody()
+    .simple("Hello World! Camel K route written in ${header.example}.")
+  .to("log:info");
+...
+----
+
+. We're ready to run the integration on our `camel-basic` project in the cluster.
++
+Use the following command to run it in "dev mode", in order to see the logs in the integration terminal:
++
+[source,bash]
+----
+$ kamel run JavaBasic.java --dev
+...
+[1] 2022-05-10 05:17:03,730 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello World! Camel K route written in Java.]
+[1] 2022-05-10 05:17:04,724 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello World! Camel K route written in Java.]
+[1] 2022-05-10 05:17:05,723 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello World! Camel K route written in Java.]
+[1] 2022-05-10 05:17:06,723 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello World! Camel K route written in Java.]
+...
+----
++
+If everything is ok, after the build phase finishes, you should see the Camel integration running and continuously printing "Hello World!..." in the terminal window.
+
+. When running in dev mode, you can change the integration code and let Camel K redeploy the changes automatically.  Open `JavaBasic.java` and change "Hello World" into "Ciao Mondo", then save the file.  You should see the new integration starting up in the terminal window and replacing the old one.
++
+[source,bash]
+----
+...
+2] 2022-05-10 05:18:58,580 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Ciao Mondo! Camel K route written in Java.]
+[2] 2022-05-10 05:18:59,568 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Ciao Mondo! Camel K route written in Java.]
+[2] 2022-05-10 05:19:00,568 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Ciao Mondo! Camel K route written in Java.]
+[2] 2022-05-10 05:19:01,569 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Ciao Mondo! Camel K route written in Java.]
+[2] 2022-05-10 05:19:02,570 INFO  [info] (Camel (camel-1) thread #0 - timer://java) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Ciao Mondo! Camel K route written in Java.]
+...
+----
+
+. To exit dev mode and terminate the execution, hit `ctrl+c`.
++
+[NOTE]
+When you terminate a "dev mode" execution, the remote integration will be deleted. This gives the experience of a local program execution, but the integration is actually running in the remote cluster.
+
+. To keep the integration running and not linked to the terminal, you can run it without "dev mode", just run:
++
+[source,bash]
+----
+$ kamel run JavaBasic.java
+----
+
+. After executing the command, you should be able to see it among running integrations:
++
+[source,bash]
+----
+$ oc get integrations
+NAME         PHASE     KIT                        REPLICAS
+java-basic   Running   kit-c9sv8cbqhmgmgn6vsl7g   1
+----
+
+. An integration named `java-basic` should be present in the list and it should be in status `Running`. There is also a `kamel get` command which is an alternative way to list all running integrations.
++
+[source,bash]
+----
+NAME		    PHASE	  KIT
+java-basic	Running	lab-04-camel-basic/kit-c9sv8cbqhmgmgn6vsl7g
+----
+
+. The second example is a bit more complex as it shows how to configure the integration using external properties and
+also a simple content-based router.  The integration is contained in a file named `Routing.java`.
++
+Open the file in an editor of your choice to view it.
++
+The routes use two configuration properties named `items` and `priority-marker` that should be provided using an external file such
+as the `routing.properties`.  The `Routing.java` file shows how to inject properties into the routes via property placeholders and also the usage of the `@PropertyInject` annotation.  To run the integration, we should link the integration to the property file providing configuration for it:
++
+[source,bash]
+----
+$ kamel run Routing.java --property-file routing.properties --dev
+----
++
+Wait for the integration to be running (you should see the logs streaming in the terminal window).  To exit dev mode and terminate the execution, hit `ctrl+c`.
+
+=== Running a basic YAML integration
+
+This section explains how to develop a simple Camel K integration in YAML DSL. Writing an integration in YAML to be deployed using Camel K is the same as defining your routing rules in Camel.
+
+You can use any Camel component directly in your integration routes. Camel K automatically handles the dependency management and imports all the required libraries from the Camel catalog using code inspection.
+
+.Procedure
+
+. Enter the kamel init command to generate a simple YAML integration file:
+[source,bash]
+----
+$ kamel init hello.camelk.yaml
+----
+
+. Open the generated integration file in your IDE and edit as appropriate. For example, the hello.camelk.yaml integration automatically includes the Camel timer and log components to help you get started:
++
+[source,yaml]
+----
+# Write your routes here, for example:
+- from:
+    uri: "timer:yaml"
+    parameters:
+      period: "1s"
+    steps:
+      - set-body:
+          constant: "Hello Camel K from yaml"
+      - to: "log:info"
+----
+
+. Run the Camel K integration:
++
+[source,bash]
+----
+$ kamel run hello.camelk.yaml
+integration "hello" created
+----
+
+=== Cleanup
+
+To cleanup everything, execute the following command:
+
+[source,bash]
+----
+$ oc delete project lab-04-camel-basic
 ----
