@@ -395,7 +395,7 @@ We will start by creating a new project and installing the Red Hat Camel K opera
 $ oc new-project lab-04-camel-basic
 ----
 
-.  To start using Camel K, we need to install the operator by running the below command:
+.  To start using Camel K, we need to install the operator and Integration Platform CR by running the below command:
 +
 [source,bash]
 ----
@@ -419,14 +419,7 @@ spec:
   name: red-hat-camel-k
   source: redhat-operators
   sourceNamespace: openshift-marketplace
-EOF
-----
-
-.  Next we need to install the Integration Platform.  The IntegrationPlatform CR is the resource used to control the behavior of the Camel K Operator such as the desired state and the status of the object at current time.  You install the IntegrationPlatform by running this command:
-+
-[source,bash]
-----
-$ cat << EOF | oc create -f -
+---
 apiVersion: camel.apache.org/v1
 kind: IntegrationPlatform
 metadata:
@@ -584,6 +577,22 @@ $ kamel init hello.camelk.yaml
 $ kamel run hello.camelk.yaml
 integration "hello" created
 ----
+
+. To view the logs of the deployed integration, run the following command:
++
+[source,bash]
+----
+$ oc logs -l camel.apache.org/integration=hello --follow
+2022-05-11 05:06:50,058 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+2022-05-11 05:06:51,058 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+2022-05-11 05:06:52,058 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+2022-05-11 05:06:53,059 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+2022-05-11 05:06:54,059 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+2022-05-11 05:06:55,060 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+2022-05-11 05:06:56,060 INFO  [info] (Camel (camel-1) thread #0 - timer://yaml) Exchange[ExchangePattern: InOnly, BodyType: String, Body: Hello Camel K from yaml]
+----
++
+To exit following the log, hit `ctrl+c`.
 
 === Cleanup
 
