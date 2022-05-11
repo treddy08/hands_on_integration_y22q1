@@ -739,13 +739,13 @@ metadata:
   namespace: lab-04-kamelet-catalog
 spec:
   targetNamespaces:
-  - llab-04-kamelet-catalog
+  - lab-04-kamelet-catalog
 ---
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: red-hat-camel-k
-  namespace: llab-04-kamelet-catalog
+  namespace: lab-04-kamelet-catalog
 spec:
   channel: stable
   name: red-hat-camel-k
