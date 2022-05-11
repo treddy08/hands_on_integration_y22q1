@@ -593,3 +593,213 @@ To cleanup everything, execute the following command:
 ----
 $ oc delete project lab-04-camel-basic
 ----
+
+== Monitoring of integrations using Prometheus in OpenShift
+
+Camel K monitoring is based on the Prometheus monitoring system: https://prometheus.io/. This chapter explains how to use the available options for monitoring Red Hat Integration - Camel K integrations at runtime. You can use the Prometheus Operator that is already deployed as part of OpenShift Monitoring to monitor your own applications.
+
+== Enabling user workload monitoring in OpenShift
+
+OpenShift 4.3 or higher includes an embedded Prometheus Operator already deployed as part of OpenShift Monitoring. This section explains how to enable monitoring of your own application services in OpenShift Monitoring. This option avoids the additional overhead of installing and managing a separate Prometheus instance.
+
+. Procedure
+
+. Enter the following command to check if the cluster-monitoring-config ConfigMap object exists in the openshift-monitoring project:
++
+[source,bash]
+----
+$ oc -n openshift-monitoring get configmap cluster-monitoring-config
+Error from server (NotFound): configmaps "cluster-monitoring-config" not found
+----
+
+. Create the cluster-monitoring-config ConfigMap if this does not already exist:
++
+[source,bash]
+----
+$ oc -n openshift-monitoring create configmap cluster-monitoring-config
+configmap/cluster-monitoring-config created
+----
+
+. Edit the cluster-monitoring-config ConfigMap:
++
+[source,bash]
+----
+$ oc -n openshift-monitoring edit configmap cluster-monitoring-config
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    enableUserWorkload: true
+----
+
+=== Configuring Camel K integration metrics
+
+You can configure monitoring of Camel K integrations automatically using the Camel K Prometheus trait at runtime. This automates the configuration of dependencies and integration Pods to expose a metrics endpoint, which is then discovered and displayed by Prometheus. The Camel Quarkus MicroProfile Metrics extension automatically collects and exposes the default Camel K metrics in the OpenMetrics format.
+
+. Procedure
+
+. Create a new project for this section of the lab:
++
+[source,bash]
+----
+$ oc new-project lab-04-camel-monitoring
+----
+
+.  As with the previous section, to start using Camel K, we need to install the operator and the IntegrationPlatform CR:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: lab-04-camel-monitoring-og
+  namespace: lab-04-camel-monitoring
+spec:
+  targetNamespaces:
+  - lab-04-camel-monitoring
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: red-hat-camel-k
+  namespace: lab-04-camel-monitoring
+spec:
+  channel: stable
+  name: red-hat-camel-k
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+---
+apiVersion: camel.apache.org/v1
+kind: IntegrationPlatform
+metadata:
+  name: camel-k
+  labels:
+    app: "camel-k"
+  namespace: lab-04-camel-monitoring
+EOF
+----
+
+. Navigate to your lab directory and select the folder `lab-04-camel-monitoring`.  This folder contains a simple Camel K integration class `SimpleIntegration.java` which logs a message periodically.
+
+. Enter the following command to run your Camel K integration with the Prometheus trait enabled:
++
+[source,java]
+----
+$ kamel run SimpleIntegration.java -t prometheus.enabled=true
+----
++
+Alternatively, you can enable the Prometheus trait globally once, by updating the integration platform as follows:
++
+[source,bash]
+----
+$ oc patch ip camel-k --type=merge -p '{"spec":{"traits":{"prometheus":{"configuration":{"enabled":true}}}}}'
+----
+
+. To view monitoring of Camel K integration metrics in the embedded Prometheus, login to you Openshift console in your browser and select *Observe > Metrics* on the left menu option.
+
+. For example, in order to view the uptime of a running Camel integration, enter `application_camel_context_uptime_seconds` under *Insert metric at Cursor* and click *Run Querires*.  You should see the metric displayed at the bottom of your page with the relevant values.
+
+. For more information on creating your own custom Camel K integration metrics, visit https://access.redhat.com/documentation
+
+== Kamelet Catalog for connectors to external systems such as AWS, Jira, and Salesforce
+
+When you install the Camel K operator, it includes a catalog of Kamelets that you can use in your Camel K integrations.  Red Hat now provides support for coonectors to external systems such as AWS, Jira and Salesforce.  In this section of the lab, we will browse the Kamelet Catalog and view the `jira-source` Kamelet external connector.
+
+. Procedure
+
+. Create a new project for this section of the lab:
++
+[source,bash]
+----
+$ oc new-project lab-04-kamelet-catalog
+----
+
+.  To start using the Kamel Catalog, we need to install the Camel K operator by running the below command:
++
+[source,bash]
+----
+$ cat << EOF | oc create -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: lab-04-kamelet-catalog-og
+  namespace: lab-04-kamelet-catalog
+spec:
+  targetNamespaces:
+  - llab-04-kamelet-catalog
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: red-hat-camel-k
+  namespace: llab-04-kamelet-catalog
+spec:
+  channel: stable
+  name: red-hat-camel-k
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF
+----
+
+. Run the following command to view the full catalog:
++
+[source,bash]
+----
+$ oc get kamelets
+----
+
+. To view the `jira-source` kamelet, run the below command:
++
+[source,bash]
+----
+$ oc get kamelet jira-source -o yaml
+----
+
+. The following table summarizes the configuration options available for the jira-source Kamelet:
++
+|===
+|Property |Name |Description |Type |Example
+
+|jiraUrl*
+|Jira URL
+|The URL of your instance of Jira
+|string
+|"http://my_jira.com:8081"
+
+|password*
+|Password
+|The password to access Jira
+|string
+|
+
+|username*
+|Username
+|The username to access Jira
+|string
+|
+
+|jql
+|JQL
+|A query to filter issues
+|
+|"project=MyProject"
+|===
++
+[NOTE]
+Fields marked with an asterisk (*) are mandatory.
+
+== Summary
+
+
+Congratulations, you have finished the lab. Here is a recap:
+
+* Deployed a Camel K integration with OpenShift Serverless in an event-driven architecture leveraging the Knative eventing broker for event pub/sub. It also demonstrated Knative Serving for autoscaling and scale-to-zero.
+* Deployed a Java and YAML integration to Openshift as well as demonstrated passing runtime properties to the integration.
+* Monitor integrations using embedded Prometheus in Openshift Monitoring
+* Viewing the Kamelet Catalog and list of Kamelets as an overview of the configuration of an external connector.
+
+Thanks for taking the course.
