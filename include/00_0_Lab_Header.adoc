@@ -6,8 +6,8 @@
 :opentlc_account_management: link:https://www.opentlc.com/account/[OPENTLC Account Management page^]
 
 // Catalog Items
-:opentlc_catalog_name: OPENTLC OpenShift 4 Labs
-:opentlc_catalog_item_name1: Hands-On with OpenShift 4.9
+:opentlc_catalog_name: OPENTLC Middleware Solutions Lab
+:opentlc_catalog_item_name1: Hands-On with Integration
 
 // OpenShift Cluster Properties
 :ocp_console: https://console-openshift-console.apps.<some-custom-identifier>.opentlc.com
