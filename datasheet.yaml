@@ -140,7 +140,6 @@ FIELDS:
 
     * *Debezium Database Connectors on AMQ Lab*
       * Introduction to Debezium Database Connectors
-      * Installing Debezium with AMQ Streams on RHEL (not sure about this)
       * Installing Debezium with AMQ Streams on OpenShift
 
     * *New features in Camel K Lab*
