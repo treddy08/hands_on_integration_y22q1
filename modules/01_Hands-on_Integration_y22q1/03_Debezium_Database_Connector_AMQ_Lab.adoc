@@ -195,12 +195,9 @@ EOF
 +
 [source,bash]
 ----
-  Conditions:
-    Last Transition Time:   2022-05-04T23:11:41Z
-    Message:                all available catalogsources are healthy
-    Reason:                 AllCatalogSourcesHealthy
-    Status:                 False
-    Type:                   CatalogSourcesUnhealthy
+$ oc get csv
+NAME                                     DISPLAY                             VERSION   REPLACES                            PHASE
+amqstreams.v2.1.0-4                      Red Hat Integration - AMQ Streams   2.1.0-4   amqstreams.v2.1.0-3                 Succeeded
 ----
 
 . A Kafka cluster consists of one or more servers (Kafka brokers) running Kafka.  A properly configured Kafka cluster is able to handle massive throughput and ideal for processing vast amounts of data collected by the Debezium databas connectors .  In this lab we will require only a single node Kafka cluster.  To deploy the cluster, run the following command:
