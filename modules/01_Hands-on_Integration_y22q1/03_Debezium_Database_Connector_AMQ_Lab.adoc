@@ -97,7 +97,6 @@ This command opens a MySQL command line client in the pod that is running the My
 [source,bash]
 ----
 $ oc exec mysql-6bf9bb59c7-shgrb  -it -- mysql -umysqluser -pmysqlpw inventory
-
 mysql: [Warning] Using a password on the command line interface can be insecure.
 Reading table information for completion of table and column names
 You can turn off this feature to get a quicker startup with -A
@@ -116,6 +115,8 @@ Type 'help;' or '\h' for help. Type '\c' to clear the current input statement.
 
 mysql>
 ----
+[NOTE]
+The pod name used for this command will be different in your environment.  The pod name can be found in output of `oc get pods -l app=mysql`
 
 . List the tables in the inventory database:
 +
@@ -199,6 +200,8 @@ $ oc get csv
 NAME                                     DISPLAY                             VERSION   REPLACES                            PHASE
 amqstreams.v2.1.0-4                      Red Hat Integration - AMQ Streams   2.1.0-4   amqstreams.v2.1.0-3                 Succeeded
 ----
+[NOTE]
+Since we are using marketplace, the CSV version may be different than what is shown here
 
 . A Kafka cluster consists of one or more servers (Kafka brokers) running Kafka.  A properly configured Kafka cluster is able to handle massive throughput and ideal for processing vast amounts of data collected by the Debezium databas connectors .  In this lab we will require only a single node Kafka cluster.  To deploy the cluster, run the following command:
 +

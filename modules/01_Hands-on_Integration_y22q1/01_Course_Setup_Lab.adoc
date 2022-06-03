@@ -142,7 +142,13 @@ This lab requires several command line interfaces.  Navigate to your Openshift c
 * kamel - Red Hat Integration - Camel K - Command Line Interface
 * kn - OpenShift Serverless Command Line Interface (CLI)
 
-You will also be required to run Maven commands.  The Maven installation instructions are availabe at https://maven.apache.org/install.html
+You will be required to run Maven commands.  The Maven installation instructions are availabe at https://maven.apache.org/install.html
+
+You will require the git CLI to interact with source code repositories.  The Git installation instructions are available at https://github.com/git-guides/install-git.
+
+You will also require JDK 11 or greater.  The OpenJDK installation instructions are available at https://openjdk.java.net/install/.
+
+
 
 == Summary
 

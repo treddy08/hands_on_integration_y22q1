@@ -92,6 +92,16 @@ spec:
 EOF
 ----
 
+. Confirm if the operator installed successfull by running `oc get csv` and find an entry related to `red-hat-camel-k-operator` in phase *Succeeded*:
++
+[source,bash]
+----
+NAME                              DISPLAY                         VERSION   REPLACES                                         PHASE
+red-hat-camel-k-operator.v1.6.5   Red Hat Integration - Camel K   1.6.5     red-hat-camel-k-operator.v1.6.4-0.1648537022.p   Succeeded
+----
+[NOTE]
+Since we are using marketplace, the CSV version may be different than what is shown here
+
 .  Next we need to install the Integration Platform.  The IntegrationPlatform CR is the resource used to control the behavior of the Camel K Operator such as the desired state and the status of the object at current time.  You install the IntegrationPlatform by running this command:
 +
 [source,bash]
@@ -105,14 +115,6 @@ metadata:
     app: "camel-k"
   namespace: lab-04-knative
 EOF
-----
-
-. Confirm if the operator installed successfull by running `oc get csv` and find an entry related to `red-hat-camel-k-operator` in phase *Succeeded*:
-+
-[source,bash]
-----
-NAME                              DISPLAY                         VERSION   REPLACES                                         PHASE
-red-hat-camel-k-operator.v1.6.5   Red Hat Integration - Camel K   1.6.5     red-hat-camel-k-operator.v1.6.4-0.1648537022.p   Succeeded
 ----
 
 . We now need to install the Openshift Serverless Operator (Knative) to later install both Knative Serving and Knative Eventing.  To do this we first need to create a new namespace for the operator by running this command:
@@ -154,7 +156,16 @@ NAME                          DISPLAY                        VERSION   REPLACES 
 serverless-operator.v1.21.1   Red Hat OpenShift Serverless   1.21.1    serverless-operator.v1.21.0   Succeeded
 ----
 
-. Once the operator is installed, we need to install Knative-Serving.  Knative Serving is ideal for running your application services inside Kubernetes by providing a more simplified deployment syntax with automated scale-to-zero and scale-out based on HTTP load. The Knative platform will manage your service’s deployments, revisions, networking and scaling. Knative Serving exposes your service via an HTTP URL and has a lot of sane defaults for its configurations.  To create the resource, run the below command:
+. Once the operator is installed, we need to install Knative-Serving.  Knative Serving is ideal for running your application services inside Kubernetes by providing a more simplified deployment syntax with automated scale-to-zero and scale-out based on HTTP load. The Knative platform will manage your service’s deployments, revisions, networking and scaling. Knative Serving exposes your service via an HTTP URL and has a lot of sane defaults for its configurations.
++
+We first need to create a `knative-serving` namespace:
++
+[source,bash]
+----
+$ oc create namespace knative-serving
+----
+
+. To create the `KnativeServing` resource, run the below command:
 +
 [source,bash]
 ----
@@ -180,7 +191,16 @@ If you do not have python installed, copy the output generated of `oc get knativ
 +
 The value of all `status` fields should be `true`.
 
-. Next we install Knative Eventing.  Knative eventing is a way to create, send, and verify events in your cloud-native environment.  To install Knative Eventing, run the below command:
+. Next we install Knative Eventing.  Knative eventing is a way to create, send, and verify events in your cloud-native environment.
++
+We first need to create a `knative-eventing` namespace:
++
+[source,bash]
+----
+$ oc create namespace knative-eventing
+----
+
+. To install Knative Eventing, run the below command:
 +
 [source,bash]
 ----
@@ -718,7 +738,7 @@ $ oc patch ip camel-k --type=merge -p '{"spec":{"traits":{"prometheus":{"configu
 
 When you install the Camel K operator, it includes a catalog of Kamelets that you can use in your Camel K integrations.  Red Hat now provides support for coonectors to external systems such as AWS, Jira and Salesforce.  In this section of the lab, we will browse the Kamelet Catalog and view the `jira-source` Kamelet external connector.
 
-. Procedure
+.Procedure
 
 . Create a new project for this section of the lab:
 +
