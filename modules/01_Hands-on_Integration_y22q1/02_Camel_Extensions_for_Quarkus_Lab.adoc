@@ -54,6 +54,7 @@ image::images/application-generator-artifact-info.png[Application Configuration,
 
 . Within the filter text box, type in `camel-quarkus-rest` and select `Camel Rest` extension
 . Type in `camel-quarkus-jackson` and select `Camel Jackson` extension
+. Type in `camel-quarkus-rest` and select `Camel Rest` extension
 . Locate the `Generate your application` option on the screen and click on the grey box with a rocket icon on it.  Confirm that the above two Camel Extensions are present.
 +
 image::images/application-generator-extension-confirm.png[Confirm Camel Extensions,align="left"]
