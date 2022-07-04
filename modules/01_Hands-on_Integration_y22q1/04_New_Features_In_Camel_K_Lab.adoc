@@ -205,7 +205,7 @@ $ oc create namespace knative-eventing
 [source,bash]
 ----
 $ cat << EOF | oc create -f -
-pipe heredoc> apiVersion: operator.knative.dev/v1alpha1
+apiVersion: operator.knative.dev/v1alpha1
 kind: KnativeEventing
 metadata:
   name: knative-eventing
@@ -575,7 +575,7 @@ You can use any Camel component directly in your integration routes. Camel K aut
 $ kamel init hello.camelk.yaml
 ----
 
-. Open the generated integration file in your IDE and edit as appropriate. For example, the hello.camelk.yaml integration automatically includes the Camel timer and log components to help you get started:
+. Open the generated integration file and edit as appropriate. For example, the hello.camelk.yaml integration automatically includes the Camel timer and log components to help you get started:
 +
 [source,yaml]
 ----

@@ -68,64 +68,116 @@ This section provides the steps to restart the environment for this course after
 . Select *Yes* at the *Are you sure?* prompt.
 . On the bottom right, click *Submit*.
 
-After a few minutes, expect to receive an email letting you know that the Hands-On with OpenShift 4.9 environment has started.
+[IMPORTANT]
+Do not select *App Control -> Start* after ordering the student environment. This is not necessary in this environment. Selecting *Start* may corrupt the lab environment or cause other complications.
 
-== Test Access to OpenShift Container Platform
-Now that you have provisioned the environment, you need to verify that you can access the lab's connections.
+* After a few minutes, expect to receive an email message with instructions on how to connect to the environment.
 
-=== Test Web Console Connections
-First make sure you can access the OpenShift Container Platform web console.
+. Read the message carefully and specifically note the following, which are included in the message:
+* A hostname for your student environment
+* A username and password for your student environment
+* A command to connect to the student environment
 
-.Procedure
-. In the provisioning email you received, click the URL for the OpenShift Container Platform web console.
-. Log in with the credentials provided in the email.
+=== Start Student Environment After Shut Down
+
+To conserve resources, the student environment shuts down automatically after eight hours.
+In this section, you restart the student environment for this course after it automatically shuts down.
+
+[IMPORTANT]
+====
+Perform this section only if the environment shut down.
+====
+
+. Go to the {opentlc_portal} and use your OPENTLC credentials to log in.
+. Navigate to *Services -> My Services* (the screen shown directly after logging in).
+. In the list of services, select your student environment.
+. Select *App Control -> Start* to start your student environment.
+. At the *Are you sure?* prompt, select *Yes*.
+. On the bottom right, click *Submit*.
+
+After a few minutes, expect to receive an email message letting you know that the student environment started.
 
 === Test Server Connections
 
-The bastion host serves as an important access point into the environment, so you need to make sure you can connect to it.
+The student environment serves as an access point into the environment and is not part of Red Hat^(R)^ OpenShift^(R)^ Container Platform's environment.
 
-.Procedure
-. Connect to your bastion host using the command and password you received in the provisioning email:
+. Connect to your student environment by using the command and password sent to you via email.
 +
 .Sample Command
-[source,bash]
+[source,sh]
 ----
-ssh lab-user@bastion.<$GUID>.<$BASEDOMAIN>
+ssh lab-user@studentvm.<GUID>.<some_base_domain>
 ----
 +
-. Verify that the GUID variable is set correctly for your environment:
+. Verify that the `$GUID` variable is set correctly for your environment.
 +
-[source,bash]
+[source,sh]
 ----
 echo $GUID
 ----
 +
 .Sample Output
+[source,texinfo]
 ----
 c3po
 ----
+* The GUID may be a four- or five-letter alphanumeric string.
+
+=== Connect to OpenShift Cluster
+
+After you are connected to your student environment, you can log in to the OpenShift cluster using your admin credentials.
+
+=== Save OpenShift Configuration to Variables
+
+To make the following labs easier, you save a few OpenShift settings to environment variables in your student VM.
+
+[TIP]
+====
+You can find the values for _all_ of these variables in the class Miro board.
+====
+
+. Set up an environment variable with your `OpenShift Cluster apps` domain.
 +
-[NOTE]
-Your GUID may be a 4- or 5-character alphanumeric string.
-
-=== Connect to OpenShift Container Platform Cluster
-
-Once you are connected to your lab environment, you can log in to the OpenShift Container Platform cluster.
-
-* In the provisioning email you received, note the following:
-** The OpenShift credentials for two OpenShift users: `admin` user and `user1` unprivileged user.
-** The URL for the API of the cluster--for example, {ocp_api}
-** The URL for the web console of the cluster--for example, {ocp_console}
-
-.Procedure
-. Use the `oc login` command to log in to the cluster:
-+
-[source,bash]
+[source,sh]
 ----
-oc login -u <username> -p <password from email> <OpenShift API URL from email>
+# Set your OpenShift Cluster apps domain here
+# Replace XXXX with the GUID and YYYY with the sandbox number
+export OCP_APPS_DOMAIN=apps.cluster-XXXX.XXXX.sandboxYYYY.opentlc.com
+
+# Save to .bashrc for future sessions
+ansible localhost -m lineinfile -a "path=${HOME}/.bashrc regexp='^export OCP_APPS_DOMAIN' line='export OCP_APPS_DOMAIN=${OCP_APPS_DOMAIN}'"
+----
+
+. Save your assigned OpenShift username, password and API endpoint to an environment variable for easier reuse.
++
+[source,sh]
+----
+# Use your cluster admin username from your provisioning email
+export OCP_USER=admin
+
+# Use your cluster admin password from your provisioning email
+export OCP_PASSWORD=r3dh4t1!
+
+# Use the Cluster API URL from your provisioning email
+export OCP_API=https://api.cluster-XXXX.XXXX.sandboxYYYY.opentlc.com:6443
+
+# Save to .bashrc for future sessions
+ansible localhost -m lineinfile -a "path=$HOME/.bashrc regexp='^export OCP_USER' line='export OCP_USER=${OCP_USER}'"
+
+ansible localhost -m lineinfile -a "path=$HOME/.bashrc regexp='^export OCP_PASSWORD' line='export OCP_PASSWORD=${OCP_PASSWORD}'"
+
+ansible localhost -m lineinfile -a "path=$HOME/.bashrc regexp='^export OCP_API' line='export OCP_API=${OCP_API}'"
+----
+
+. Use the `oc login` command to log in to the cluster.
++
+[source,sh]
+----
+oc login --insecure-skip-tls-verify=true -u ${OCP_USER} -p ${OCP_PASSWORD} ${OCP_API}
 ----
 +
 .Sample Output
+[source,texinfo]
 ----
 Login successful.
 
@@ -134,23 +186,50 @@ You don't have any projects. You can try to create a new project, by running
     oc new-project <projectname>
 ----
 
-== Set Up Local Environment
+== Complete Environment Overview
 
-This lab requires several command line interfaces.  Navigate to your Openshift console and select *Help -> Command line tools*.  Download the CLI's appropriate for your operating system if you do not have them on your client machine:
+You are using a shared cluster for this course. Your instructor already configured the shared cluster with the  services required for this course.
 
-* oc - OpenShift Command Line Interface (CLI)
-* kamel - Red Hat Integration - Camel K - Command Line Interface
-* kn - OpenShift Serverless Command Line Interface (CLI)
+== Install Additional Plug-ins into Lab Environment
 
-You will be required to run Maven commands.  The Maven installation instructions are availabe at https://maven.apache.org/install.html
+Your lab environment is a VM that is provisioned in the cloud. There are several packages already installed in this VM:
 
-You will require the git CLI to interact with source code repositories.  The Git installation instructions are available at https://github.com/git-guides/install-git.
+* OpenJDK 11
+* Maven: A Java(TM) build tool
+* Mandrel: A high-speed Java VM with the capability to compile Java Quarkus applications into native code
+* `kubeseal`: A command line tool to manage sealed secrets
+* Several OpenShift command line utilities
+** `oc`: OpenShift CLI
+** `kn`: OpenShift Serverless CLI
+** `podman`: For managing container images and containers
+** `ansible`: For some simple admin tasks
 
-You will also require JDK 11 or greater.  The OpenJDK installation instructions are available at https://openjdk.java.net/install/.
+You will also require the Camel K CLI.
 
+. Install `kamel` by copying and pasting the entire code snippet below, including the brackets.
++
+[source,sh]
+----
+(
+  rm -rf ~/kamelk;
+  mkdir ~/kamelk;
+  cd ~/kamelk &&
+  curl -fsSLO "https://downloads.apache.org/camel/camel-k/1.9.2/camel-k-client-1.9.2-linux-64bit.tar.gz" &&
+  tar zxvf "camel-k-client-1.9.2-linux-64bit.tar.gz"
+)
+----
 
+. Set up the path for your environment to include the location of the CLI.
++
+[source,sh]
+----
+ansible localhost -m lineinfile -a "path=${HOME}/.bashrc line='export PATH=\"~/kamelk:$PATH\"'"
+
+source ${HOME}/.bashrc
+----
 
 == Summary
 
+Your Hands-On with Integration Y22Q1 environment is ready to use.
 
-Congratulations, your Hands-On Integration Y22Q1 environment is ready to use.
+Proceed to the next module to get started.
