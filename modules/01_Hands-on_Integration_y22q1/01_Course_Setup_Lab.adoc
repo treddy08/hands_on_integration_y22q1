@@ -223,7 +223,7 @@ You will also require the Camel K CLI.
 +
 [source,sh]
 ----
-ansible localhost -m lineinfile -a "path=${HOME}/.bashrc line='export PATH=\"~/kamelk:$PATH\"'"
+ansible localhost -m lineinfile -a "path=${HOME}/.bashrc line='export PATH=\"${HOME}/kamelk:$PATH\"'"
 
 source ${HOME}/.bashrc
 ----
