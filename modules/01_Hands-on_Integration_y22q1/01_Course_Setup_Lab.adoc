@@ -32,9 +32,9 @@ The lab environment is a cloud-based environment, so that you can access it over
 The Red Hat team has made efforts to provide a lab environment that is sufficiently powered to meet the needs of your labs.
 Feel free to experiment with this cluster.
 
-In the labs for this course, you use the OpenShift Container Platform web console and the command line for most of the tasks.
+In the labs for this course, you use the OpenShift Container Platform web console and a Student Environment for most of the tasks.
 
-=== Deploy Environment
+=== Deploy Openshift Container Platform
 
 In this section, you deploy the single-node OpenShift Container Platform environment for this course.
 
@@ -55,7 +55,7 @@ Selecting *Start* may corrupt the lab environment or cause other complications.
 * The URL for the OpenShift Container Platform web console and the necessary credentials.
 * The host name for your bastion environment and instructions for connecting to it via SSH.
 
-== Start Environment After Shutdown
+=== Start Openshift Environment After Shutdown
 
 To conserve resources, the lab environment shuts down automatically after four hours.
 This section provides the steps to restart the environment for this course after it has shut down.
@@ -68,6 +68,20 @@ This section provides the steps to restart the environment for this course after
 . Select *Yes* at the *Are you sure?* prompt.
 . On the bottom right, click *Submit*.
 
+After a few minutes, expect to receive an email letting you know that the Hands-On with OpenShift 4.9 environment has started.
+
+=== Deploy Student Environment
+
+In the labs for this course, you use the command line for most of the tasks. The labs assume that you are using the provided student environment.
+
+In this section, you deploy the student environment for this course.
+
+. Go to the {opentlc_portal} and use your OPENTLC credentials to log in.
+. Navigate to *Services -> Catalogs -> All Services -> {opentlc_catalog_name}*.
+. On the left, select *{opentlc_student_catalog_item_name1}*.
+. On the right, click *Order*.
+. On the bottom right, click *Submit*.
++
 [IMPORTANT]
 Do not select *App Control -> Start* after ordering the student environment. This is not necessary in this environment. Selecting *Start* may corrupt the lab environment or cause other complications.
 

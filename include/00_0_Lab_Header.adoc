@@ -8,6 +8,7 @@
 // Catalog Items
 :opentlc_catalog_name: OPENTLC Middleware Solutions Lab
 :opentlc_catalog_item_name1: Hands-On with Integration
+:opentlc_student_catalog_item_name1: Hands-On with Integration
 
 // OpenShift Cluster Properties
 :ocp_console: https://console-openshift-console.apps.<some-custom-identifier>.opentlc.com
