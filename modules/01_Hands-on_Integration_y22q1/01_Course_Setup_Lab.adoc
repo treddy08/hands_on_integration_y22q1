@@ -215,32 +215,9 @@ Your lab environment is a VM that is provisioned in the cloud. There are several
 * Several OpenShift command line utilities
 ** `oc`: OpenShift CLI
 ** `kn`: OpenShift Serverless CLI
+** `kamel`: Camel K CLI
 ** `podman`: For managing container images and containers
 ** `ansible`: For some simple admin tasks
-
-You will also require the Camel K CLI.
-
-. Install `kamel` by copying and pasting the entire code snippet below, including the brackets.
-+
-[source,sh]
-----
-(
-  rm -rf ~/kamelk;
-  mkdir ~/kamelk;
-  cd ~/kamelk &&
-  curl -fsSLO "https://downloads.apache.org/camel/camel-k/1.9.2/camel-k-client-1.9.2-linux-64bit.tar.gz" &&
-  tar zxvf "camel-k-client-1.9.2-linux-64bit.tar.gz"
-)
-----
-
-. Set up the path for your environment to include the location of the CLI.
-+
-[source,sh]
-----
-ansible localhost -m lineinfile -a "path=${HOME}/.bashrc line='export PATH=\"${HOME}/kamelk:$PATH\"'"
-
-source ${HOME}/.bashrc
-----
 
 == Summary
 
